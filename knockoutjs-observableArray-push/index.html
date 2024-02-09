@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Knockout JS observableArray best practice</title>
+	</head>
+	<body>
+
+		<input type="number" data-bind="value: loopNumber"/>
+		<button type="button"data-bind="click: reloadDataSlow">Reload data (Slow)</button>
+		<button type="button"data-bind="click: reloadData">Reload data (Best Practice)</button>
+		
+		<hr/>
+		
+		<h2>Items length: <span data-bind="text: items().length"></span></h2>
+		<h3>Elapsed: <span data-bind="text: elapsed"></span> ms</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Index</th>
+					<th>GUID</th>
+				</tr>
+			</thead>
+			<tbody data-bind="foreach: items">
+				<tr>
+					<td data-bind="text: index"></td>
+					<td data-bind="text: guid"></td>
+				</tr>
+			</tbody>
+		</table>
+
+		<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+		<script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.5.0.js"></script>
+		<script>
+			var _model = function(){
+				this.loopNumber = ko.observable(2000);
+				this.elapsed = ko.observable(0);
+				this.items = ko.observableArray();
+				this.reloadDataSlow = function(){
+					const _length = this.loopNumber();
+					const _start = performance.now();
+					console.log('reloadDataSlow');
+					console.log('start loop', _start);
+					this.items.removeAll();
+					for(var i = 0; i < _length; i++){
+						this.items.push({ index: i+1, guid: _uuid()});
+					}
+					const _end = performance.now();
+					console.log('end loop', _end);
+					this.elapsed(_end - _start);
+					console.log('elapsed', _end - _start, 'ms');
+				};
+				this.reloadData = function(){
+					const _length = this.loopNumber();
+					const _start = performance.now();
+					console.log('reloadData');
+					console.log('start loop', _start);
+					var _items = [];
+					for(var i = 0; i < _length; i++){
+						_items.push({ index: i+1, guid: _uuid()});
+					}
+					this.items(_items);
+					const _end = performance.now();
+					console.log('end loop', _end);
+					this.elapsed(_end - _start);
+					console.log('elapsed', _end - _start, 'ms');
+				};
+			};
+			ko.applyBindings(new _model());
+			function _uuid() {
+				var d = Date.now();
+				if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
+					d += performance.now(); //use high-precision timer if available
+				}
+				return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+					var r = (d + Math.random() * 16) % 16 | 0;
+					d = Math.floor(d / 16);
+					return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+				});
+			}
+		</script>
+	</body>
+</html>
